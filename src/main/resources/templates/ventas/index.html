@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/layout :: head">
+    <title>Ventas</title>
+</head>
+<body>
+<div class="container-fluid" layout:fragment="page-content">
+    <div class="d-flex justify-content-between">
+        <span class="h3">Modulo de Ventas</span>
+        <a class="btn btn-dark" th:href="@{/ventas/crear}">Registrar Venta</a>
+    </div>
+    <hr>
+    <table class="table table-dark table-striped"
+    >
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>TOTAL</th>
+                <th>FECHA</th>
+                <th>CLIENTE</th>
+                <th>VENDEDOR</th>
+                <th>DETALLE</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="venta : ${ventas}">
+                <td th:text="${venta.getId()}"></td>
+                <td th:text="${venta.getTotal()}"></td>
+                <td th:text="${venta.getFecha()}"></td>
+                <td th:text="${venta.getNombreCliente()}"></td>
+                <td th:text="${venta.getUsuario().getNombre()}"></td>
+                <td><button class="btn btn-info btnDetalle" th:data-id="${venta.getId()}">Ver Detalle</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="modal" tabindex="-1" id="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalle de Venta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Total <span class="text-end" id="modalTotal"></span></p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalBody">
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onload = () => {
+            const btnList = document.querySelectorAll(".btnDetalle")
+            const modal = new bootstrap.Modal(document.querySelector('#modal'))
+
+            const mostrarDetalle = async (idventa) => {
+                const rawResponse = await fetch(`/ventas/${idventa}/detalles`)
+                const data = await rawResponse.json()
+                document.querySelector("#modalTotal").innerHTML = data.reduce((prev, act) => prev + (act.cantidad * act.precio), 0)
+                data.forEach(detalle => {
+                    const body = document.querySelector("#modalBody")
+                    body.innerHTML = "";
+                    const tr = document.createElement("tr")
+
+                    tr.append(getTd(detalle.producto.descripcion))
+                    tr.append(getTd(detalle.cantidad))
+                    tr.append(getTd(detalle.precio))
+                    tr.append(getTd((detalle.precio * detalle.cantidad).toString()))
+
+                    body.append(tr)
+                })
+
+                modal.show();
+            }
+
+            const getTd = (str) => {
+                const td = document.createElement("td")
+                td.innerText = str
+                return td
+            }
+
+            btnList.forEach(btnDetalle => {
+                btnDetalle.addEventListener("click", e => mostrarDetalle(e.target.dataset.id))
+            })
+
+        }
+    </script>
+</div>
+</body>
+</html>

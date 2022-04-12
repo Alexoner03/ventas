@@ -1,0 +1,55 @@
+DROP DATABASE IF EXISTS control_de_ventas;
+
+CREATE DATABASE control_de_ventas;
+
+USE control_de_ventas;
+
+CREATE TABLE USUARIO(
+                        IDE_USR INT PRIMARY KEY AUTO_INCREMENT,
+                        NOM_USR VARCHAR(255),
+                        PAS_USR VARCHAR(255)
+);
+
+CREATE TABLE ROL(
+                    IDE_ROL INT PRIMARY KEY AUTO_INCREMENT,
+                    DSC_ROL VARCHAR(255),
+                    IDE_USR INT,
+                    FOREIGN KEY (IDE_USR) REFERENCES USUARIO(IDE_USR)
+);
+
+CREATE TABLE VENTA(
+                      IDE_VEN INT PRIMARY KEY AUTO_INCREMENT,
+                      TOT_VEN DECIMAL(10,2),
+                      FEC_VEN DATETIME,
+                      IDE_USR INT,
+                      NOM_CLI VARCHAR(255),
+                      FOREIGN KEY (IDE_USR) REFERENCES USUARIO(IDE_USR)
+);
+
+CREATE TABLE PRODUCTO(
+                         IDE_PRO INT PRIMARY KEY AUTO_INCREMENT,
+                         DSC_PRO VARCHAR(255),
+                         STK_PRO INT,
+                         PRE_PRO DECIMAL(10,2)
+);
+
+CREATE TABLE DETALLE_VENTA(
+                              IDE_PRO INT,
+                              IDE_VEN INT,
+                              PRE_DET DECIMAL(10,2),
+                              CAN_DET INT,
+                              FOREIGN KEY (IDE_PRO) REFERENCES PRODUCTO(IDE_PRO),
+                              FOREIGN KEY (IDE_VEN) REFERENCES VENTA(IDE_VEN)
+);
+
+
+INSERT INTO USUARIO VALUES(NULL, "ADMIN","$2a$10$Hni/7wMXlVbaM8IAHN0fOeTP/YszvO4.QgL9LGJeiJAI1zM51/sXa");
+INSERT INTO USUARIO VALUES(NULL, "VENDEDOR","$2a$10$QjNm6FKXHSuh2HyO6a/R1.ph/GJDDGu5MTGjXe.taYYJ.JuxippOO");
+INSERT INTO ROL VALUES(NULL, "ROLE_ADMINISTRADOR", 1);
+INSERT INTO ROL VALUES(NULL, "ROLE_VENDEDOR",1);
+INSERT INTO ROL VALUES(NULL, "ROLE_VENDEDOR",2);
+INSERT INTO PRODUCTO VALUES(NULL, "PRODUCTO 1",100,100);
+INSERT INTO PRODUCTO VALUES(NULL, "PRODUCTO 2",100,100);
+INSERT INTO PRODUCTO VALUES(NULL, "PRODUCTO 3",100,100);
+INSERT INTO PRODUCTO VALUES(NULL, "PRODUCTO 4",100,100);
+

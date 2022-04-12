@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/layout :: head">
+    <title>Ventas</title>
+</head>
+<body>
+<div class="container-fluid" layout:fragment="page-content">
+    <div class="d-flex justify-content-between">
+        <span class="h3">Modulo de Productos</span>
+        <a class="btn btn-dark" th:href="@{/productos/crear}">Registrar Producto</a>
+    </div>
+    <hr>
+    <table class="table table-dark table-striped"
+    >
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>DESCRIPCION</th>
+            <th>PRECIO</th>
+            <th>STOCK</th>
+            <th>ACCIONES</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="producto : ${productos}">
+            <td th:text="${producto.getId()}"></td>
+            <td th:text="${producto.getDescripcion()}"></td>
+            <td th:text="${producto.getPrecio()}"></td>
+            <td th:text="${producto.getStock()}"></td>
+            <td>
+                <a th:href="@{'/productos/'+ ${producto.getId()} + '/editar'}" class="btn btn-info btnDetalle">Editar</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

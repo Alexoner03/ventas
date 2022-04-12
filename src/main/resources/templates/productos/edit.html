@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/layout :: head">
+    <title>Ventas</title>
+</head>
+<body>
+<div class="container-fluid" layout:fragment="page-content">
+    <div class="d-flex justify-content-between">
+        <span class="h3">Modulo de Productos (Actualizar) </span>
+        <a class="btn btn-dark" th:href="@{/productos}">Ir a Listado</a>
+    </div>
+    <hr>
+    <form th:action="@{/productos/store}" method="post" th:object="${producto}">
+        <input type="hidden" th:field="*{id}" th:value="${producto.getId()}">
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Nombre del Producto</label>
+            <input type="text" class="form-control" id="descripcion" th:field="*{descripcion}"  th:value="${producto.getDescripcion()}" required/>
+        </div>
+        <div class="mb-3">
+            <label for="precio" class="form-label">Precio del Producto</label>
+            <input type="number" class="form-control" id="precio" th:field="*{precio}" th:value="${producto.getPrecio()}" required/>
+        </div>
+        <div class="mb-3">
+            <label for="stock" class="form-label">Stock del Producto</label>
+            <input type="number" class="form-control" id="stock" th:field="*{stock}" th:value="${producto.getStock()}" required/>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar</button>
+
+    </form>
+</div>
+</body>
+</html>

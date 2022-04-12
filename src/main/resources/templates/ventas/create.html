@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/layout :: head">
+    <title>Ventas</title>
+</head>
+<body>
+    <div class="container-fluid" layout:fragment="page-content">
+        <div class="d-flex justify-content-between">
+            <span class="h3">Modulo de Ventas</span>
+            <a class="btn btn-dark" th:href="@{/ventas}">Ir a Listado</a>
+        </div>
+        <hr>
+
+        <div class="row mb-3">
+            <div class="col-4">
+                <label for="selectProducto">Seleccione un Producto</label>
+                <select class="form-select" id="selectProducto" >
+                    <option th:each="producto : ${productos}"
+                            th:value="${producto.getId()}"
+                            th:text="${producto.getDescripcion()}"></option>
+                </select>
+            </div>
+            <div class="col-2">
+                <label for="precio">Precio</label>
+                <input type="number" class="form-control" id="precio" readonly>
+            </div>
+            <div class="col-2">
+                <label for="stock">Stock</label>
+                <input type="number" class="form-control" id="stock" readonly>
+            </div>
+            <div class="col-2">
+                <label for="cantidad">Cantidad</label>
+                <input type="number" class="form-control" id="cantidad"/>
+            </div>
+            <div class="col-2">
+                <label class="d-block" for="stock">&nbsp;</label>
+                <input type="button" class="btn btn-dark w-100" id="agregarProducto" value="Agregar">
+            </div>
+        </div>
+
+        <form th:action="@{/ventas/guardar}" method="post" th:object="${venta}">
+            <div th:if="${#fields.hasAnyErrors()}" class="mb-3">
+                <ul>
+                    <li class="text-danger" th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+                </ul>
+            </div>
+            <div class="mb-3">
+                <label for="nombreCliente" class="form-label">Nombre de Cliente</label>
+                <input type="text" class="form-control" id="nombreCliente" th:field="*{nombreCliente}" required/>
+            </div>
+            <div class="mb-3">
+                <table class="table">
+                    <tr>
+                        <th>
+                            idProducto
+                        </th>
+                        <th>
+                            Producto
+                        </th>
+                        <th>
+                            Precio
+                        </th>
+                        <th>
+                            Cantidad
+                        </th>
+                        <th>
+                            Total
+                        </th>
+                        <th>
+                            Action
+                        </th>
+                    </tr>
+                    <tbody id="detalleBody">
+
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <p class="text-end">Total: <span id="total"></span></p>
+            </div>
+            <button type="submit" class="btn btn-primary">Registrar</button>
+        </form>
+        <script type="text/javascript" th:inline="javascript">
+            window.onload = () => {
+                const listProductos = [[${productos}]];
+
+                let detalleDeVenta = []
+
+                const DetalleNameMap = {
+                    id: "producto.id",
+                    descripcion: "descripcion",
+                    precio : "precio",
+                    cantidad: "cantidad",
+                    total : "total",
+                }
+
+                const setPrecioStock = (precio, stock) => {
+                    document.querySelector('#precio').value = precio;
+                    document.querySelector('#stock').value = stock;
+                }
+
+                const eliminarDetalle = (id) => {
+
+                    const productoToDelete = detalleDeVenta.find(p => p.id === id)
+                    const listIndex = listProductos.findIndex(p => p.id === id)
+                    listProductos[listIndex].stock += productoToDelete.cantidad
+                    detalleDeVenta = detalleDeVenta.filter(p => p.id !== id)
+                    listarProductos();
+                    listDetalleVenta();
+                    getTotal();
+                }
+
+                const listDetalleVenta = () => {
+                    const detalleBody = document.querySelector("#detalleBody")
+                    detalleBody.innerHTML = ""
+
+                    detalleDeVenta.forEach((detalle, index)=> {
+                        const tr = document.createElement('tr')
+
+                        Object.keys(detalle).forEach(detalleKey => {
+                            const td = document.createElement('td')
+                            const input = document.createElement('input')
+                            input.readOnly = true
+                            input.classList.add("form-control")
+                            input.type = detalleKey === "descripcion" ? "text" : "number"
+                            input.name = ["total","descripcion"].includes(detalleKey) ? undefined : `detalle[${index}].${DetalleNameMap[detalleKey]}`
+                            input.value = detalle[detalleKey]
+                            td.append(input)
+                            tr.append(td)
+                        })
+
+                        const actionTd = document.createElement('td')
+                        const btn = document.createElement('button')
+                        btn.innerText = "Eliminar"
+                        btn.classList.add("btn", "btn-danger")
+                        btn.onclick = () => {
+                            eliminarDetalle(detalle.id)
+                        }
+                        actionTd.append(btn)
+                        tr.append(actionTd)
+
+                        detalleBody.append(tr)
+                    })
+                }
+
+                const listarProductos = () => {
+                    const selectProducto = document.querySelector("#selectProducto")
+                    selectProducto.innerHTML = ""
+                    listProductos.forEach(producto => {
+                        const opt = document.createElement("option")
+                        opt.innerText = producto.descripcion
+                        opt.value = producto.id
+                        selectProducto.append(opt)
+                    })
+                    setPrecioStock(listProductos[0].precio,listProductos[0].stock)
+                }
+
+                const restarStock = (id, cantidad) => {
+                    const index = listProductos.findIndex(p => p.id === id)
+                    listProductos[index].stock -= cantidad;
+                }
+
+                const getTotal = () => {
+                    document.querySelector("#total").innerText = detalleDeVenta.reduce((accumulator, current) => accumulator + current.total, 0)
+                }
+
+                document.querySelector("#selectProducto").addEventListener("change", (e) => {
+                    const productoSeleccionado = listProductos.find(p => p.id === parseInt(e.target.value));
+                    setPrecioStock(productoSeleccionado.precio, productoSeleccionado.stock)
+                })
+
+                document.querySelector("#agregarProducto").addEventListener('click', (e) => {
+                    const cantidad = parseInt(document.querySelector("#cantidad").value)
+                    const productSelected = parseInt(document.querySelector("#selectProducto").value)
+                    let { stock, precio, id, descripcion } = listProductos.find(p => p.id === productSelected);
+
+                    stock = parseInt(stock); precio = parseFloat(precio); id = parseInt(id);
+
+                    const listId = detalleDeVenta.findIndex(d => d.id === id)
+                    if(cantidad === null || cantidad <= 0){
+                        alert("Ingrese una cantidad")
+                        return;
+                    }
+
+                    if(parseInt(stock) < cantidad){
+                        alert(`No hay suficiente stock para ${descripcion}`)
+                        return;
+                    }
+
+                    restarStock(id, cantidad)
+                    listarProductos()
+
+                    if(listId !== -1){
+                        detalleDeVenta[listId].cantidad += cantidad
+                        detalleDeVenta[listId].total = precio * detalleDeVenta[listId].cantidad
+                    }else {
+                        detalleDeVenta.push({
+                            id: id,
+                            descripcion,
+                            precio: precio,
+                            cantidad: cantidad,
+                            total : precio * cantidad
+                        })
+                    }
+
+                    listDetalleVenta();
+                    getTotal();
+                })
+
+                setPrecioStock(listProductos[0].precio,listProductos[0].stock)
+
+            }
+        </script>
+    </div>
+</body>
+</html>
